@@ -2,7 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../shared/database/prisma.service';
 import { MethodologyMappingService } from './methodology-mapping.service';
 import { ValidationResultDto } from '../dto/validate-methodology.dto';
-import { CrossComplianceReportDto, FrameworkCoverage } from '../dto/cross-compliance-report.dto';
+import {
+  CrossComplianceReportDto,
+  FrameworkCoverage,
+} from '../dto/cross-compliance-report.dto';
 
 @Injectable()
 export class CrossComplianceService {
@@ -11,13 +14,18 @@ export class CrossComplianceService {
     private mappingService: MethodologyMappingService,
   ) {}
 
-  async validateMethodologyForFramework(tokenId: number, frameworkCode: string): Promise<ValidationResultDto> {
+  async validateMethodologyForFramework(
+    tokenId: number,
+    frameworkCode: string,
+  ): Promise<ValidationResultDto> {
     const framework = await this.prisma.framework.findUnique({
       where: { code: frameworkCode },
     });
 
     if (!framework) {
-      throw new NotFoundException(`Framework with code ${frameworkCode} not found`);
+      throw new NotFoundException(
+        `Framework with code ${frameworkCode} not found`,
+      );
     }
 
     const mapping = await this.prisma.frameworkMethodologyMapping.findFirst({
@@ -29,9 +37,11 @@ export class CrossComplianceService {
     });
 
     const frameworkRequirements = (framework.requirements as any[]) || [];
-    const allRequirementIds = frameworkRequirements.map(r => r.id);
+    const allRequirementIds = frameworkRequirements.map((r) => r.id);
     const mappedRequirementIds = mapping?.requirementIds || [];
-    const missingRequirementIds = allRequirementIds.filter(id => !mappedRequirementIds.includes(id));
+    const missingRequirementIds = allRequirementIds.filter(
+      (id) => !mappedRequirementIds.includes(id),
+    );
 
     return {
       isValid: mappedRequirementIds.length > 0,
@@ -39,11 +49,19 @@ export class CrossComplianceService {
       methodologyTokenId: tokenId,
       mappedRequirements: mappedRequirementIds,
       missingRequirements: missingRequirementIds,
-      reasons: mappedRequirementIds.length === 0 ? ['No mapping found or no requirements fulfilled by this methodology'] : [],
+      reasons:
+        mappedRequirementIds.length === 0
+          ? [
+              'No mapping found or no requirements fulfilled by this methodology',
+            ]
+          : [],
     };
   }
 
-  async generateCrossComplianceReport(companyId: string, frameworkCodes?: string[]): Promise<CrossComplianceReportDto> {
+  async generateCrossComplianceReport(
+    companyId: string,
+    frameworkCodes?: string[],
+  ): Promise<CrossComplianceReportDto> {
     const company = await this.prisma.company.findUnique({
       where: { id: companyId },
       include: {
@@ -65,8 +83,8 @@ export class CrossComplianceService {
 
     // Get all methodologies in company portfolio
     const portfolioMethodologies = new Set<string>();
-    company.portfolios.forEach(p => {
-      p.holdings.forEach(h => {
+    company.portfolios.forEach((p) => {
+      p.holdings.forEach((h) => {
         if (h.credit.methodology) {
           portfolioMethodologies.add(h.credit.methodology);
         }
@@ -82,7 +100,7 @@ export class CrossComplianceService {
       },
     });
 
-    const methodologyIds = syncedMethodologies.map(m => m.id);
+    const methodologyIds = syncedMethodologies.map((m) => m.id);
 
     // Get frameworks
     const frameworks = await this.prisma.framework.findMany({
@@ -97,22 +115,23 @@ export class CrossComplianceService {
       },
     });
 
-    const frameworkCoverages: FrameworkCoverage[] = frameworks.map(f => {
+    const frameworkCoverages: FrameworkCoverage[] = frameworks.map((f) => {
       const frameworkRequirements = (f.requirements as any[]) || [];
       const totalRequirements = frameworkRequirements.length;
-      
+
       const mappedRequirementIds = new Set<string>();
-      f.mappings.forEach(m => {
-        m.requirementIds.forEach(rid => mappedRequirementIds.add(rid));
+      f.mappings.forEach((m) => {
+        m.requirementIds.forEach((rid) => mappedRequirementIds.add(rid));
       });
 
-      const coveragePercentage = totalRequirements > 0 
-        ? (mappedRequirementIds.size / totalRequirements) * 100 
-        : 0;
+      const coveragePercentage =
+        totalRequirements > 0
+          ? (mappedRequirementIds.size / totalRequirements) * 100
+          : 0;
 
       const unmappedRequirements = frameworkRequirements
-        .filter(r => !mappedRequirementIds.has(r.id))
-        .map(r => r.id);
+        .filter((r) => !mappedRequirementIds.has(r.id))
+        .map((r) => r.id);
 
       return {
         frameworkCode: f.code,
@@ -124,9 +143,13 @@ export class CrossComplianceService {
       };
     });
 
-    const overallCoverage = frameworkCoverages.length > 0
-      ? frameworkCoverages.reduce((sum, fc) => sum + fc.coveragePercentage, 0) / frameworkCoverages.length
-      : 0;
+    const overallCoverage =
+      frameworkCoverages.length > 0
+        ? frameworkCoverages.reduce(
+            (sum, fc) => sum + fc.coveragePercentage,
+            0,
+          ) / frameworkCoverages.length
+        : 0;
 
     return {
       companyId,

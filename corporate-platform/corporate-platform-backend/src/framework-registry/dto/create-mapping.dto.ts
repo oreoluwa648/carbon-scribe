@@ -1,4 +1,12 @@
-import { IsArray, IsInt, IsOptional, IsString, IsObject, IsBoolean, IsIn } from 'class-validator';
+import {
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsObject,
+  IsBoolean,
+  IsIn,
+} from 'class-validator';
 
 export class CreateMappingDto {
   @IsString()

@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../shared/database/prisma.service';
 import { MappingRulesService } from './mapping-rules.service';
 import { CreateMappingDto, UpdateMappingDto } from '../dto/create-mapping.dto';
@@ -24,7 +29,9 @@ export class MethodologyMappingService {
     });
 
     if (existing) {
-      throw new ConflictException('Mapping already exists for this framework and methodology');
+      throw new ConflictException(
+        'Mapping already exists for this framework and methodology',
+      );
     }
 
     const mapping = await this.prisma.frameworkMethodologyMapping.create({
@@ -59,7 +66,9 @@ export class MethodologyMappingService {
     });
 
     if (!framework) {
-      throw new NotFoundException(`Framework with code ${frameworkCode} not found`);
+      throw new NotFoundException(
+        `Framework with code ${frameworkCode} not found`,
+      );
     }
 
     return this.prisma.frameworkMethodologyMapping.findMany({
@@ -68,7 +77,11 @@ export class MethodologyMappingService {
     });
   }
 
-  async updateMapping(id: string, dto: UpdateMappingDto, userId: string = 'system') {
+  async updateMapping(
+    id: string,
+    dto: UpdateMappingDto,
+    userId: string = 'system',
+  ) {
     const existing = await this.prisma.frameworkMethodologyMapping.findUnique({
       where: { id },
     });
@@ -111,7 +124,9 @@ export class MethodologyMappingService {
     });
 
     if (!methodology) {
-      throw new NotFoundException(`Methodology with ID ${methodologyId} not found`);
+      throw new NotFoundException(
+        `Methodology with ID ${methodologyId} not found`,
+      );
     }
 
     const activeRules = await this.mappingRules.findActiveRules();
@@ -122,17 +137,28 @@ export class MethodologyMappingService {
 
       switch (rule.conditionType) {
         case 'REGISTRY':
-          isMatch = methodology.registry?.toLowerCase() === rule.conditionValue.toLowerCase();
+          isMatch =
+            methodology.registry?.toLowerCase() ===
+            rule.conditionValue.toLowerCase();
           break;
         case 'METHODOLOGY_TYPE':
-          isMatch = methodology.category?.toLowerCase() === rule.conditionValue.toLowerCase();
+          isMatch =
+            methodology.category?.toLowerCase() ===
+            rule.conditionValue.toLowerCase();
           break;
         case 'AUTHORITY':
-          isMatch = methodology.authority?.toLowerCase() === rule.conditionValue.toLowerCase();
+          isMatch =
+            methodology.authority?.toLowerCase() ===
+            rule.conditionValue.toLowerCase();
           break;
         case 'KEYWORD':
-          isMatch = methodology.name.toLowerCase().includes(rule.conditionValue.toLowerCase()) ||
-                    methodology.description?.toLowerCase().includes(rule.conditionValue.toLowerCase());
+          isMatch =
+            methodology.name
+              .toLowerCase()
+              .includes(rule.conditionValue.toLowerCase()) ||
+            methodology.description
+              ?.toLowerCase()
+              .includes(rule.conditionValue.toLowerCase());
           break;
       }
 
@@ -144,18 +170,23 @@ export class MethodologyMappingService {
 
         if (framework) {
           try {
-            const mapping = await this.createMapping({
-              frameworkId: framework.id,
-              methodologyId: methodology.id,
-              methodologyTokenId: methodology.tokenId,
-              requirementIds: rule.targetRequirements,
-              mappingType: 'AUTO',
-              metadata: { ruleId: rule.id, ruleName: rule.name },
-            }, userId);
+            const mapping = await this.createMapping(
+              {
+                frameworkId: framework.id,
+                methodologyId: methodology.id,
+                methodologyTokenId: methodology.tokenId,
+                requirementIds: rule.targetRequirements,
+                mappingType: 'AUTO',
+                metadata: { ruleId: rule.id, ruleName: rule.name },
+              },
+              userId,
+            );
             mappingsCreated.push(mapping);
-          } catch (error) {
+          } catch (_error) {
             // Mapping might already exist, skip
-            this.logger.debug(`Auto-mapping already exists for methodology ${methodology.id} and framework ${framework.id}`);
+            this.logger.debug(
+              `Auto-mapping already exists for methodology ${methodology.id} and framework ${framework.id}`,
+            );
           }
         }
       }

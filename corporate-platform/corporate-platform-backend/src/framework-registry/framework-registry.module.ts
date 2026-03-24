@@ -7,9 +7,7 @@ import { AutoMappingJob } from './jobs/auto-mapping.job';
 import { DatabaseModule } from '../shared/database/database.module';
 
 @Module({
-  imports: [
-    DatabaseModule,
-  ],
+  imports: [DatabaseModule],
   controllers: [MethodologyMappingController],
   providers: [
     MethodologyMappingService,

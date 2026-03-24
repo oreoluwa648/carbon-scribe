@@ -18,26 +18,36 @@ export class AutoMappingJob {
 
     try {
       // Find methodologies that have no active mappings
-      const unmappedMethodologies = await this.prisma.syncedMethodology.findMany({
-        where: {
-          mappings: {
-            none: {
-              isActive: true,
+      const unmappedMethodologies =
+        await this.prisma.syncedMethodology.findMany({
+          where: {
+            mappings: {
+              none: {
+                isActive: true,
+              },
             },
           },
-        },
-      });
+        });
 
-      this.logger.log(`Found ${unmappedMethodologies.length} unmapped methodologies.`);
+      this.logger.log(
+        `Found ${unmappedMethodologies.length} unmapped methodologies.`,
+      );
 
       for (const methodology of unmappedMethodologies) {
         try {
-          const mappings = await this.mappingService.autoMapMethodology(methodology.id, 'system-job');
+          const mappings = await this.mappingService.autoMapMethodology(
+            methodology.id,
+            'system-job',
+          );
           if (mappings.length > 0) {
-            this.logger.log(`Auto-mapped methodology ${methodology.name} (${methodology.id}) to ${mappings.length} frameworks.`);
+            this.logger.log(
+              `Auto-mapped methodology ${methodology.name} (${methodology.id}) to ${mappings.length} frameworks.`,
+            );
           }
         } catch (error) {
-          this.logger.error(`Failed to auto-map methodology ${methodology.id}: ${error.message}`);
+          this.logger.error(
+            `Failed to auto-map methodology ${methodology.id}: ${error.message}`,
+          );
         }
       }
 

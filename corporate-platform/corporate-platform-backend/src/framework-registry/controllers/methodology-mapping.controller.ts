@@ -14,7 +14,7 @@ import { MethodologyMappingService } from '../services/methodology-mapping.servi
 import { MappingRulesService } from '../services/mapping-rules.service';
 import { CrossComplianceService } from '../services/cross-compliance.service';
 import { CreateMappingDto, UpdateMappingDto } from '../dto/create-mapping.dto';
-import { CreateMappingRuleDto, UpdateMappingRuleDto } from '../dto/create-rule.dto';
+import { CreateMappingRuleDto } from '../dto/create-rule.dto';
 import { ValidateMethodologyDto } from '../dto/validate-methodology.dto';
 import { CrossComplianceReportQueryDto } from '../dto/cross-compliance-report.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -35,12 +35,17 @@ export class MethodologyMappingController {
 
   @Post('frameworks/mappings')
   @Roles('admin')
-  async createMapping(@Body() dto: CreateMappingDto, @CurrentUser('id') userId: string) {
+  async createMapping(
+    @Body() dto: CreateMappingDto,
+    @CurrentUser('id') userId: string,
+  ) {
     return this.mappingService.createMapping(dto, userId);
   }
 
   @Get('frameworks/mappings/methodology/:tokenId')
-  async getMappingsForMethodology(@Param('tokenId', ParseIntPipe) tokenId: number) {
+  async getMappingsForMethodology(
+    @Param('tokenId', ParseIntPipe) tokenId: number,
+  ) {
     return this.mappingService.getMappingsForMethodology(tokenId);
   }
 
@@ -61,7 +66,10 @@ export class MethodologyMappingController {
 
   @Delete('frameworks/mappings/:id')
   @Roles('admin')
-  async deleteMapping(@Param('id') id: string, @CurrentUser('id') userId: string) {
+  async deleteMapping(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+  ) {
     return this.mappingService.deleteMapping(id, userId);
   }
 

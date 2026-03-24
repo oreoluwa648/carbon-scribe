@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../shared/database/prisma.service';
-import { CreateMappingRuleDto, UpdateMappingRuleDto } from '../dto/create-rule.dto';
+import {
+  CreateMappingRuleDto,
+  UpdateMappingRuleDto,
+} from '../dto/create-rule.dto';
 
 @Injectable()
 export class MappingRulesService {

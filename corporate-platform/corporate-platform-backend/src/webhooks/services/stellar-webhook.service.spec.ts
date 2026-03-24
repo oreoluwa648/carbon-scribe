@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { StellarWebhookService } from './stellar-webhook.service';
 import { PrismaService } from '../../shared/database/prisma.service';
-import { OperationType, TransactionStatus } from '../interfaces/webhook.interface';
+import {
+  OperationType,
+  TransactionStatus,
+} from '../interfaces/webhook.interface';
 import { NotFoundException } from '@nestjs/common';
 
 describe('StellarWebhookService', () => {
   let service: StellarWebhookService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     transactionConfirmation: {
@@ -28,7 +30,6 @@ describe('StellarWebhookService', () => {
     }).compile();
 
     service = module.get<StellarWebhookService>(StellarWebhookService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
@@ -44,18 +45,24 @@ describe('StellarWebhookService', () => {
         companyId: 'company1',
       };
 
-      (mockPrismaService.transactionConfirmation.upsert as jest.Mock).mockResolvedValue({ id: '1', ...dto });
+      (
+        mockPrismaService.transactionConfirmation.upsert as jest.Mock
+      ).mockResolvedValue({ id: '1', ...dto });
 
       const result = await service.registerTransaction(dto);
 
       expect(result.id).toBe('1');
-      expect(mockPrismaService.transactionConfirmation.upsert).toHaveBeenCalled();
+      expect(
+        mockPrismaService.transactionConfirmation.upsert,
+      ).toHaveBeenCalled();
     });
   });
 
   describe('getTransactionStatus', () => {
     it('should return status if transaction exists', async () => {
-      (mockPrismaService.transactionConfirmation.findUnique as jest.Mock).mockResolvedValue({
+      (
+        mockPrismaService.transactionConfirmation.findUnique as jest.Mock
+      ).mockResolvedValue({
         transactionHash: 'hash123',
         status: TransactionStatus.CONFIRMED,
         confirmations: 3,
@@ -69,9 +76,13 @@ describe('StellarWebhookService', () => {
     });
 
     it('should throw NotFoundException if transaction not found', async () => {
-      (mockPrismaService.transactionConfirmation.findUnique as jest.Mock).mockResolvedValue(null);
+      (
+        mockPrismaService.transactionConfirmation.findUnique as jest.Mock
+      ).mockResolvedValue(null);
 
-      await expect(service.getTransactionStatus('unknown')).rejects.toThrow(NotFoundException);
+      await expect(service.getTransactionStatus('unknown')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

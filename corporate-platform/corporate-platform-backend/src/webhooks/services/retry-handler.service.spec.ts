@@ -6,7 +6,6 @@ import { WebhookStatus } from '../interfaces/webhook.interface';
 
 describe('RetryHandlerService', () => {
   let service: RetryHandlerService;
-  let prisma: PrismaService;
 
   const mockPrismaService = {
     webhookDelivery: {
@@ -30,7 +29,6 @@ describe('RetryHandlerService', () => {
     }).compile();
 
     service = module.get<RetryHandlerService>(RetryHandlerService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
@@ -46,8 +44,12 @@ describe('RetryHandlerService', () => {
         nextAttemptAt: new Date(Date.now() - 1000),
       };
 
-      (mockPrismaService.webhookDelivery.findMany as jest.Mock).mockResolvedValue([delivery]);
-      (mockPrismaService.webhookDelivery.update as jest.Mock).mockResolvedValue({ ...delivery, status: WebhookStatus.RETRYING });
+      (
+        mockPrismaService.webhookDelivery.findMany as jest.Mock
+      ).mockResolvedValue([delivery]);
+      (mockPrismaService.webhookDelivery.update as jest.Mock).mockResolvedValue(
+        { ...delivery, status: WebhookStatus.RETRYING },
+      );
 
       await service.handleRetries();
 

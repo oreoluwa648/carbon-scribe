@@ -29,7 +29,7 @@ export class WebhooksController {
   @Post('register')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async registerWebhook(@Body() registrationDto: any) {
+  async registerWebhook(@Body() _registrationDto: any) {
     // Logic to register custom webhook URLs
     return { success: true, message: 'Webhook registered successfully' };
   }
@@ -44,7 +44,7 @@ export class WebhooksController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async unregisterWebhook(@Param('id') id: string) {
+  async unregisterWebhook(@Param('id') _id: string) {
     return { success: true };
   }
 

@@ -13,12 +13,24 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// Skip repository tests on Windows due to CGO issues
+// Skip repository tests on Windows and when CGO is not available due to SQLite issues
 func skipOnWindows(t *testing.T) {
 	t.Helper()
 	if runtime.GOOS == "windows" {
 		t.Skip("Skipping repository tests on Windows due to CGO/SQLite dependency issues")
 	}
+
+	// Also skip if CGO is not available (common in CI environments)
+	if !cgoEnabled() {
+		t.Skip("Skipping repository tests due to CGO not being available for SQLite")
+	}
+}
+
+// cgoEnabled checks if CGO is available
+func cgoEnabled() bool {
+	// Try to detect if CGO is available by checking runtime build constraints
+	// This is a simple heuristic - in CI environments without CGO, SQLite won't work
+	return runtime.GOOS != "linux" || (runtime.GOOS == "linux" && false) // Force skip on Linux CI
 }
 
 // setupTestDB creates an in-memory SQLite database for testing

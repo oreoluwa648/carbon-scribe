@@ -3,6 +3,7 @@ package collaboration
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	authctx "carbon-scribe/project-portal/project-portal-backend/internal/auth"
 
@@ -21,6 +22,18 @@ func NewHandler(service *Service) *Handler {
 type InviteUserRequest struct {
 	Email string `json:"email" binding:"required,email"`
 	Role  string `json:"role" binding:"required"`
+}
+
+type inviteUserResponse struct {
+	ID        string    `json:"id"`
+	ProjectID string    `json:"project_id"`
+	Email     string    `json:"email"`
+	Role      string    `json:"role"`
+	Token     string    `json:"token"`
+	Status    string    `json:"status"`
+	ExpiresAt time.Time `json:"expires_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (h *Handler) InviteUser(c *gin.Context) {
@@ -43,7 +56,17 @@ func (h *Handler) InviteUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, invite)
+	c.JSON(http.StatusCreated, inviteUserResponse{
+		ID:        invite.ID,
+		ProjectID: invite.ProjectID,
+		Email:     invite.Email,
+		Role:      invite.Role,
+		Token:     invite.Token,
+		Status:    invite.Status,
+		ExpiresAt: invite.ExpiresAt,
+		CreatedAt: invite.CreatedAt,
+		UpdatedAt: invite.UpdatedAt,
+	})
 }
 
 func (h *Handler) GetActivities(c *gin.Context) {

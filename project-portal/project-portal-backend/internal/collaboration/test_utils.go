@@ -3,12 +3,16 @@ package collaboration
 import (
 	"context"
 	"errors"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
 // FakeCollaborationRepo is a mock implementation of the Repository interface for testing
 type FakeCollaborationRepo struct {
+	mu sync.RWMutex
+
 	CreatedInvitation *ProjectInvitation
 	CreatedComment    *Comment
 	CreatedTask       *Task
@@ -16,8 +20,10 @@ type FakeCollaborationRepo struct {
 	Activities        []ActivityLog
 	ExistingTask      *Task // For UpdateTask tests
 	// Additional fields for integration tests
-	Comments []Comment
-	Tasks    []Task
+	Invitations []ProjectInvitation
+	Comments    []Comment
+	Tasks       []Task
+	Resources   []SharedResource
 }
 
 func (f *FakeCollaborationRepo) AddMember(ctx context.Context, member *ProjectMember) error {
@@ -59,30 +65,93 @@ func (f *FakeCollaborationRepo) RemoveMember(ctx context.Context, projectID, use
 }
 
 func (f *FakeCollaborationRepo) CreateInvitation(ctx context.Context, invite *ProjectInvitation) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if invite.ID == "" {
+		invite.ID = "invitation-1"
+	}
 	clone := *invite
 	f.CreatedInvitation = &clone
+	f.Invitations = append(f.Invitations, clone)
 	return nil
 }
 
 func (f *FakeCollaborationRepo) GetInvitationByToken(ctx context.Context, token string) (*ProjectInvitation, error) {
-	return nil, errors.New("not implemented")
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	for _, invitation := range f.Invitations {
+		if invitation.Token == token {
+			clone := invitation
+			return &clone, nil
+		}
+	}
+	return nil, errors.New("invitation not found")
 }
 
 func (f *FakeCollaborationRepo) ListInvitations(ctx context.Context, projectID string) ([]ProjectInvitation, error) {
-	return []ProjectInvitation{}, nil
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	var invitations []ProjectInvitation
+	for _, invitation := range f.Invitations {
+		if invitation.ProjectID == projectID {
+			invitations = append(invitations, invitation)
+		}
+	}
+	return invitations, nil
 }
 
 func (f *FakeCollaborationRepo) CreateActivity(ctx context.Context, activity *ActivityLog) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	clone := *activity
 	f.Activities = append(f.Activities, clone)
 	return nil
 }
 
 func (f *FakeCollaborationRepo) ListActivities(ctx context.Context, projectID string, limit, offset int) ([]ActivityLog, error) {
-	return f.Activities, nil
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	filtered := make([]ActivityLog, 0, len(f.Activities))
+	for _, activity := range f.Activities {
+		if activity.ProjectID == projectID {
+			filtered = append(filtered, activity)
+		}
+	}
+
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].CreatedAt.After(filtered[j].CreatedAt)
+	})
+
+	if offset >= len(filtered) {
+		return []ActivityLog{}, nil
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	if limit <= 0 {
+		limit = len(filtered) - offset
+	}
+
+	end := offset + limit
+	if end > len(filtered) {
+		end = len(filtered)
+	}
+
+	return filtered[offset:end], nil
 }
 
 func (f *FakeCollaborationRepo) CreateComment(ctx context.Context, comment *Comment) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if comment.ID == "" {
+		comment.ID = "comment-1"
+	}
 	clone := *comment
 	f.CreatedComment = &clone
 	f.Comments = append(f.Comments, clone)
@@ -90,21 +159,52 @@ func (f *FakeCollaborationRepo) CreateComment(ctx context.Context, comment *Comm
 }
 
 func (f *FakeCollaborationRepo) ListComments(ctx context.Context, projectID string) ([]Comment, error) {
-	return f.Comments, nil
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	comments := make([]Comment, 0, len(f.Comments))
+	for _, comment := range f.Comments {
+		if comment.ProjectID == projectID {
+			comments = append(comments, comment)
+		}
+	}
+	return comments, nil
 }
 
 func (f *FakeCollaborationRepo) CreateTask(ctx context.Context, task *Task) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if task.ID == "" {
+		if len(f.Tasks) == 0 {
+			task.ID = "existing-task"
+		} else {
+			task.ID = "task-" + time.Now().Format("150405.000000000")
+		}
+	}
 	clone := *task
 	f.CreatedTask = &clone
 	f.Tasks = append(f.Tasks, clone)
+	if clone.ID == "existing-task" {
+		f.ExistingTask = &clone
+	}
 	return nil
 }
 
 func (f *FakeCollaborationRepo) GetTask(ctx context.Context, taskID string) (*Task, error) {
-	if taskID == "existing-task" && f.ExistingTask != nil {
-		return f.ExistingTask, nil
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	for _, task := range f.Tasks {
+		if task.ID == taskID {
+			clone := task
+			return &clone, nil
+		}
 	}
-	// For integration tests, return a mock task for "task123"
+	if taskID == "existing-task" && f.ExistingTask != nil {
+		clone := *f.ExistingTask
+		return &clone, nil
+	}
 	if taskID == "task123" {
 		return &Task{
 			ID:          "task123",
@@ -122,19 +222,60 @@ func (f *FakeCollaborationRepo) GetTask(ctx context.Context, taskID string) (*Ta
 }
 
 func (f *FakeCollaborationRepo) ListTasks(ctx context.Context, projectID string) ([]Task, error) {
-	return f.Tasks, nil
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	tasks := make([]Task, 0, len(f.Tasks))
+	for _, task := range f.Tasks {
+		if task.ProjectID == projectID {
+			tasks = append(tasks, task)
+		}
+	}
+	return tasks, nil
 }
 
 func (f *FakeCollaborationRepo) UpdateTask(ctx context.Context, task *Task) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	clone := *task
+	for index, existing := range f.Tasks {
+		if existing.ID == task.ID {
+			f.Tasks[index] = clone
+			if task.ID == "existing-task" {
+				f.ExistingTask = &clone
+			}
+			return nil
+		}
+	}
+	if task.ID == "existing-task" {
+		f.ExistingTask = &clone
+	}
 	return nil
 }
 
 func (f *FakeCollaborationRepo) CreateResource(ctx context.Context, resource *SharedResource) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	if resource.ID == "" {
+		resource.ID = "resource-1"
+	}
 	clone := *resource
 	f.CreatedResource = &clone
+	f.Resources = append(f.Resources, clone)
 	return nil
 }
 
 func (f *FakeCollaborationRepo) ListResources(ctx context.Context, projectID string) ([]SharedResource, error) {
-	return []SharedResource{}, nil
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
+	resources := make([]SharedResource, 0, len(f.Resources))
+	for _, resource := range f.Resources {
+		if resource.ProjectID == projectID {
+			resources = append(resources, resource)
+		}
+	}
+	return resources, nil
 }

@@ -1,5 +1,10 @@
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CsrdService } from './csrd.service';
 import { CreateMaterialityAssessmentDto } from './dto/assessment.dto';
 import {
@@ -97,6 +102,9 @@ export class CsrdController {
     @CompanyId() companyId: string,
     @Body('tokenIds') tokenIds: string[],
   ) {
-    return this.csrdService.verifyOffsetsForCompliance(companyId, tokenIds || []);
+    return this.csrdService.verifyOffsetsForCompliance(
+      companyId,
+      tokenIds || [],
+    );
   }
 }

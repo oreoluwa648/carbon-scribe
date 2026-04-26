@@ -13,9 +13,6 @@ import {
 
 describe('RetirementVerificationService', () => {
   let service: RetirementVerificationService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let sorobanService: jest.Mocked<SorobanService>;
-  let securityService: jest.Mocked<SecurityService>;
 
   const mockPrismaService = {
     credit: {
@@ -44,7 +41,11 @@ describe('RetirementVerificationService', () => {
   };
 
   const mockRetirementTrackerService = {
-    getContractId: jest.fn().mockReturnValue('CCDCE6N7Q27TZW6Z6W3DPDCNOGHWFSOQUQPSRRZIY7AEHNOYZMNFDFVU'),
+    getContractId: jest
+      .fn()
+      .mockReturnValue(
+        'CCDCE6N7Q27TZW6Z6W3DPDCNOGHWFSOQUQPSRRZIY7AEHNOYZMNFDFVU',
+      ),
     simulate: jest.fn(),
   };
 
@@ -58,15 +59,17 @@ describe('RetirementVerificationService', () => {
         RetirementVerificationService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: SorobanService, useValue: mockSorobanService },
-        { provide: RetirementTrackerService, useValue: mockRetirementTrackerService },
+        {
+          provide: RetirementTrackerService,
+          useValue: mockRetirementTrackerService,
+        },
         { provide: SecurityService, useValue: mockSecurityService },
       ],
     }).compile();
 
-    service = module.get<RetirementVerificationService>(RetirementVerificationService);
-    prismaService = module.get(PrismaService);
-    sorobanService = module.get(SorobanService);
-    securityService = module.get(SecurityService);
+    service = module.get<RetirementVerificationService>(
+      RetirementVerificationService,
+    );
   });
 
   afterEach(() => {
@@ -85,12 +88,16 @@ describe('RetirementVerificationService', () => {
         if (where.id === 'token-1') {
           return Promise.resolve({
             id: 'token-1',
-            retirements: [{ id: 'ret-1', companyId, amount: 100, retiredAt: new Date() }],
+            retirements: [
+              { id: 'ret-1', companyId, amount: 100, retiredAt: new Date() },
+            ],
           });
         }
         return Promise.resolve({
           id: 'token-2',
-          retirements: [{ id: 'ret-2', companyId, amount: 200, retiredAt: new Date() }],
+          retirements: [
+            { id: 'ret-2', companyId, amount: 200, retiredAt: new Date() },
+          ],
         });
       });
 
@@ -102,7 +109,9 @@ describe('RetirementVerificationService', () => {
 
       mockPrismaService.corsiaEligibleCredit.findMany.mockResolvedValue([]);
       mockPrismaService.contractCall.findMany.mockResolvedValue([]);
-      mockPrismaService.retirementVerification.create.mockResolvedValue({} as any);
+      mockPrismaService.retirementVerification.create.mockResolvedValue(
+        {} as any,
+      );
 
       const result = await service.verifyRetirements(companyId, dto);
 
@@ -116,9 +125,9 @@ describe('RetirementVerificationService', () => {
     it('should throw BadRequestException for empty tokens array', async () => {
       const dto: VerifyRetirementDto = { tokens: [] };
 
-      await expect(service.verifyRetirements('company-123', dto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.verifyRetirements('company-123', dto),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException for batch exceeding maximum size', async () => {
@@ -127,14 +136,16 @@ describe('RetirementVerificationService', () => {
       }));
       const dto: VerifyRetirementDto = { tokens };
 
-      await expect(service.verifyRetirements('company-123', dto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.verifyRetirements('company-123', dto),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should handle token not found', async () => {
       mockPrismaService.credit.findFirst.mockResolvedValue(null);
-      mockPrismaService.retirementVerification.create.mockResolvedValue({} as any);
+      mockPrismaService.retirementVerification.create.mockResolvedValue(
+        {} as any,
+      );
 
       const dto: VerifyRetirementDto = {
         tokens: [{ tokenId: 'invalid-token' }],
@@ -151,7 +162,9 @@ describe('RetirementVerificationService', () => {
         id: 'token-1',
         retirements: [],
       });
-      mockPrismaService.retirementVerification.create.mockResolvedValue({} as any);
+      mockPrismaService.retirementVerification.create.mockResolvedValue(
+        {} as any,
+      );
 
       const dto: VerifyRetirementDto = {
         tokens: [{ tokenId: 'token-1' }],
@@ -165,7 +178,14 @@ describe('RetirementVerificationService', () => {
     it('should handle already claimed tokens', async () => {
       mockPrismaService.credit.findFirst.mockResolvedValue({
         id: 'token-1',
-        retirements: [{ id: 'ret-1', companyId: 'company-123', amount: 100, retiredAt: new Date() }],
+        retirements: [
+          {
+            id: 'ret-1',
+            companyId: 'company-123',
+            amount: 100,
+            retiredAt: new Date(),
+          },
+        ],
       });
 
       mockSorobanService.simulateContractCall.mockResolvedValue({
@@ -182,7 +202,9 @@ describe('RetirementVerificationService', () => {
         },
       ]);
       mockPrismaService.contractCall.findMany.mockResolvedValue([]);
-      mockPrismaService.retirementVerification.create.mockResolvedValue({} as any);
+      mockPrismaService.retirementVerification.create.mockResolvedValue(
+        {} as any,
+      );
 
       const dto: VerifyRetirementDto = {
         tokens: [{ tokenId: 'token-1' }],
@@ -203,7 +225,9 @@ describe('RetirementVerificationService', () => {
 
       mockPrismaService.credit.findFirst.mockResolvedValue({
         id: tokenId,
-        retirements: [{ id: 'ret-1', companyId, amount: 100, retiredAt: new Date() }],
+        retirements: [
+          { id: 'ret-1', companyId, amount: 100, retiredAt: new Date() },
+        ],
       });
 
       mockPrismaService.retirement.findFirst.mockResolvedValue({
@@ -246,7 +270,9 @@ describe('RetirementVerificationService', () => {
 
       mockPrismaService.credit.findFirst.mockResolvedValue({
         id: tokenId,
-        retirements: [{ id: 'ret-1', companyId, amount: 100, retiredAt: new Date() }],
+        retirements: [
+          { id: 'ret-1', companyId, amount: 100, retiredAt: new Date() },
+        ],
       });
 
       mockPrismaService.retirement.findFirst.mockResolvedValue({
@@ -302,7 +328,14 @@ describe('RetirementVerificationService', () => {
     it('should return invalid for insufficient amount', async () => {
       mockPrismaService.credit.findFirst.mockResolvedValue({
         id: 'token-1',
-        retirements: [{ id: 'ret-1', companyId: 'company-123', amount: 50, retiredAt: new Date() }],
+        retirements: [
+          {
+            id: 'ret-1',
+            companyId: 'company-123',
+            amount: 50,
+            retiredAt: new Date(),
+          },
+        ],
       });
 
       mockPrismaService.retirement.findFirst.mockResolvedValue({
@@ -347,7 +380,9 @@ describe('RetirementVerificationService', () => {
 
       mockPrismaService.credit.findFirst.mockResolvedValue({
         id: 'token-1',
-        retirements: [{ id: 'ret-1', companyId, amount: 100, retiredAt: new Date() }],
+        retirements: [
+          { id: 'ret-1', companyId, amount: 100, retiredAt: new Date() },
+        ],
       });
 
       mockPrismaService.retirement.findFirst.mockResolvedValue({
@@ -365,7 +400,11 @@ describe('RetirementVerificationService', () => {
       mockPrismaService.corsiaEligibleCredit.findMany.mockResolvedValue([]);
       mockPrismaService.contractCall.findMany.mockResolvedValue([]);
 
-      const result = await service.blockDoubleClaim(companyId, [tokenIds[0]], framework);
+      const result = await service.blockDoubleClaim(
+        companyId,
+        [tokenIds[0]],
+        framework,
+      );
 
       expect(result.blocked).toBe(false);
       expect(result.blockedTokens).toHaveLength(0);
@@ -377,7 +416,9 @@ describe('RetirementVerificationService', () => {
 
       mockPrismaService.credit.findFirst.mockResolvedValue({
         id: 'token-1',
-        retirements: [{ id: 'ret-1', companyId, amount: 100, retiredAt: new Date() }],
+        retirements: [
+          { id: 'ret-1', companyId, amount: 100, retiredAt: new Date() },
+        ],
       });
 
       mockPrismaService.retirement.findFirst.mockResolvedValue({
@@ -402,7 +443,11 @@ describe('RetirementVerificationService', () => {
       ]);
       mockPrismaService.contractCall.findMany.mockResolvedValue([]);
 
-      const result = await service.blockDoubleClaim(companyId, ['token-1'], framework);
+      const result = await service.blockDoubleClaim(
+        companyId,
+        ['token-1'],
+        framework,
+      );
 
       expect(result.blocked).toBe(true);
       expect(result.blockedTokens).toContain('token-1');
@@ -416,7 +461,8 @@ describe('RetirementVerificationService', () => {
       mockPrismaService.contractCall.findMany.mockResolvedValue([
         {
           id: 'call-1',
-          contractId: 'CCDCE6N7Q27TZW6Z6W3DPDCNOGHWFSOQUQPSRRZIY7AEHNOYZMNFDFVU',
+          contractId:
+            'CCDCE6N7Q27TZW6Z6W3DPDCNOGHWFSOQUQPSRRZIY7AEHNOYZMNFDFVU',
           methodName: 'check_retirement_status',
           args: [{ type: 'u64', value: '42' }],
           status: 'CONFIRMED',
@@ -425,7 +471,8 @@ describe('RetirementVerificationService', () => {
         },
         {
           id: 'call-2',
-          contractId: 'CCDCE6N7Q27TZW6Z6W3DPDCNOGHWFSOQUQPSRRZIY7AEHNOYZMNFDFVU',
+          contractId:
+            'CCDCE6N7Q27TZW6Z6W3DPDCNOGHWFSOQUQPSRRZIY7AEHNOYZMNFDFVU',
           methodName: 'verify_retirement',
           args: [{ type: 'u64', value: '43' }],
           status: 'CONFIRMED',

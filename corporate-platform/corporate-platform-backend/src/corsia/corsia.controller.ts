@@ -8,7 +8,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CorsiaService } from './corsia.service';
 import { RecordFlightDto } from './dto/record-flight.dto';
 import { ComplianceYearDto } from './dto/compliance-year.dto';

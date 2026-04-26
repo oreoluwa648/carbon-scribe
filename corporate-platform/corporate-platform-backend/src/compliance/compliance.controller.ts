@@ -8,7 +8,14 @@ import {
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { ComplianceService } from './compliance.service';
 import { CheckComplianceDto } from './dto/check-compliance.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,7 +27,6 @@ import {
   COMPLIANCE_SUBMIT,
   COMPLIANCE_VIEW,
   COMPLIANCE_AUDIT,
-  COMPLIANCE_VERIFY_RETIREMENT,
 } from '../rbac/constants/permissions.constants';
 import { IpWhitelistGuard } from '../security/guards/ip-whitelist.guard';
 import { SecurityService } from '../security/security.service';
@@ -166,8 +172,14 @@ export class ComplianceController {
     description:
       'Validates on-chain retirement status for a list of carbon credit tokens before offset claims. Prevents double-counting by checking each token against the Soroban Retirement Tracker contract.',
   })
-  @ApiResponse({ status: 200, description: 'Verification results returned successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid input — at least one token required' })
+  @ApiResponse({
+    status: 200,
+    description: 'Verification results returned successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input — at least one token required',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async verifyRetirement(
@@ -214,7 +226,12 @@ export class ComplianceController {
       'Returns the full retirement status for a specific token including on-chain verification, claim history, and audit trail.',
   })
   @ApiParam({ name: 'tokenId', description: 'Token ID to check' })
-  @ApiQuery({ name: 'framework', enum: ComplianceFramework, required: false, description: 'Filter claims by compliance framework' })
+  @ApiQuery({
+    name: 'framework',
+    enum: ComplianceFramework,
+    required: false,
+    description: 'Filter claims by compliance framework',
+  })
   @ApiResponse({ status: 200, description: 'Retirement status returned' })
   @ApiResponse({ status: 404, description: 'Token not found' })
   async getRetirementStatus(
@@ -364,10 +381,29 @@ export class ComplianceController {
     description:
       'Retrieves an immutable audit trail of all retirement verification calls made against the Soroban Retirement Tracker contract. Supports pagination and filtering by token ID or framework.',
   })
-  @ApiQuery({ name: 'tokenId', required: false, description: 'Filter by token ID' })
-  @ApiQuery({ name: 'framework', enum: ComplianceFramework, required: false, description: 'Filter by compliance framework' })
-  @ApiQuery({ name: 'limit', required: false, description: 'Max results (default 50, max 100)', type: Number })
-  @ApiQuery({ name: 'offset', required: false, description: 'Pagination offset', type: Number })
+  @ApiQuery({
+    name: 'tokenId',
+    required: false,
+    description: 'Filter by token ID',
+  })
+  @ApiQuery({
+    name: 'framework',
+    enum: ComplianceFramework,
+    required: false,
+    description: 'Filter by compliance framework',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Max results (default 50, max 100)',
+    type: Number,
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    description: 'Pagination offset',
+    type: Number,
+  })
   @ApiResponse({ status: 200, description: 'Verification history returned' })
   async getVerificationHistory(
     @CurrentUser() user: JwtPayload,

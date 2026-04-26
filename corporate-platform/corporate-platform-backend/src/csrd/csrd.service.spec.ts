@@ -6,7 +6,10 @@ import { EsrsDisclosureService } from './services/esrs-disclosure.service';
 import { ReportGeneratorService } from './services/report-generator.service';
 import { SecurityService } from '../security/security.service';
 import { RetirementVerificationService } from '../compliance/services/retirement-verification.service';
-import { ComplianceFramework, OffsetClaimStatus } from '../compliance/dto/retirement-verification.dto';
+import {
+  ComplianceFramework,
+  OffsetClaimStatus,
+} from '../compliance/dto/retirement-verification.dto';
 
 describe('CsrdService', () => {
   let service: CsrdService;
@@ -59,7 +62,10 @@ describe('CsrdService', () => {
         { provide: EsrsDisclosureService, useValue: mockDisclosureService },
         { provide: ReportGeneratorService, useValue: mockReportService },
         { provide: SecurityService, useValue: mockSecurityService },
-        { provide: RetirementVerificationService, useValue: mockRetirementVerificationService },
+        {
+          provide: RetirementVerificationService,
+          useValue: mockRetirementVerificationService,
+        },
       ],
     }).compile();
 
@@ -90,13 +96,26 @@ describe('CsrdService', () => {
         claimedTokens: 0,
         notRetiredTokens: 0,
         results: [
-          { tokenId: 'token-1', status: OffsetClaimStatus.VERIFIED, message: 'Token verified', onChainVerified: true },
-          { tokenId: 'token-2', status: OffsetClaimStatus.VERIFIED, message: 'Token verified', onChainVerified: true },
+          {
+            tokenId: 'token-1',
+            status: OffsetClaimStatus.VERIFIED,
+            message: 'Token verified',
+            onChainVerified: true,
+          },
+          {
+            tokenId: 'token-2',
+            status: OffsetClaimStatus.VERIFIED,
+            message: 'Token verified',
+            onChainVerified: true,
+          },
         ],
         timestamp: new Date().toISOString(),
       });
 
-      const result = await service.verifyOffsetsForCompliance(companyId, tokenIds);
+      const result = await service.verifyOffsetsForCompliance(
+        companyId,
+        tokenIds,
+      );
 
       expect(result.valid).toBe(true);
       expect(result.totalValid).toBe(2);
@@ -104,13 +123,12 @@ describe('CsrdService', () => {
       expect(result.results).toHaveLength(2);
       expect(result.results[0].valid).toBe(true);
       expect(result.results[1].valid).toBe(true);
-      expect(mockRetirementVerificationService.verifyRetirements).toHaveBeenCalledWith(
-        companyId,
-        {
-          tokens: tokenIds.map((id) => ({ tokenId: id })),
-          framework: ComplianceFramework.CSRD,
-        },
-      );
+      expect(
+        mockRetirementVerificationService.verifyRetirements,
+      ).toHaveBeenCalledWith(companyId, {
+        tokens: tokenIds.map((id) => ({ tokenId: id })),
+        framework: ComplianceFramework.CSRD,
+      });
     });
 
     it('should return invalid result when some tokens are already claimed', async () => {
@@ -124,13 +142,26 @@ describe('CsrdService', () => {
         claimedTokens: 1,
         notRetiredTokens: 0,
         results: [
-          { tokenId: 'token-1', status: OffsetClaimStatus.VERIFIED, message: 'Token verified', onChainVerified: true },
-          { tokenId: 'token-2', status: OffsetClaimStatus.ALREADY_CLAIMED, message: 'Already claimed', onChainVerified: true },
+          {
+            tokenId: 'token-1',
+            status: OffsetClaimStatus.VERIFIED,
+            message: 'Token verified',
+            onChainVerified: true,
+          },
+          {
+            tokenId: 'token-2',
+            status: OffsetClaimStatus.ALREADY_CLAIMED,
+            message: 'Already claimed',
+            onChainVerified: true,
+          },
         ],
         timestamp: new Date().toISOString(),
       });
 
-      const result = await service.verifyOffsetsForCompliance(companyId, tokenIds);
+      const result = await service.verifyOffsetsForCompliance(
+        companyId,
+        tokenIds,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.totalValid).toBe(1);
@@ -150,12 +181,20 @@ describe('CsrdService', () => {
         claimedTokens: 0,
         notRetiredTokens: 1,
         results: [
-          { tokenId: 'token-1', status: OffsetClaimStatus.NOT_RETIRED, message: 'Token not retired', onChainVerified: false },
+          {
+            tokenId: 'token-1',
+            status: OffsetClaimStatus.NOT_RETIRED,
+            message: 'Token not retired',
+            onChainVerified: false,
+          },
         ],
         timestamp: new Date().toISOString(),
       });
 
-      const result = await service.verifyOffsetsForCompliance(companyId, tokenIds);
+      const result = await service.verifyOffsetsForCompliance(
+        companyId,
+        tokenIds,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.totalValid).toBe(0);

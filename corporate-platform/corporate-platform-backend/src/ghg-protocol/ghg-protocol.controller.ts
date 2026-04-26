@@ -8,7 +8,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/interfaces/jwt-payload.interface';
@@ -123,6 +128,9 @@ export class GhgProtocolController {
     @CompanyId() companyId: string,
     @Body('tokenIds') tokenIds: string[],
   ) {
-    return this.ghgProtocolService.verifyOffsetsForCompliance(companyId, tokenIds || []);
+    return this.ghgProtocolService.verifyOffsetsForCompliance(
+      companyId,
+      tokenIds || [],
+    );
   }
 }

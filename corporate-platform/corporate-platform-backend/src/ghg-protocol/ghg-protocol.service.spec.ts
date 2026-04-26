@@ -3,8 +3,10 @@ import {
   AuditAction,
   AuditEventType,
 } from '../audit-trail/interfaces/audit-event.interface';
-import { RetirementVerificationService } from '../compliance/services/retirement-verification.service';
-import { ComplianceFramework, OffsetClaimStatus } from '../compliance/dto/retirement-verification.dto';
+import {
+  ComplianceFramework,
+  OffsetClaimStatus,
+} from '../compliance/dto/retirement-verification.dto';
 
 describe('GhgProtocolService', () => {
   let service: GhgProtocolService;
@@ -153,26 +155,38 @@ describe('GhgProtocolService', () => {
         claimedTokens: 0,
         notRetiredTokens: 0,
         results: [
-          { tokenId: 'token-1', status: OffsetClaimStatus.VERIFIED, message: 'Token verified', onChainVerified: true },
-          { tokenId: 'token-2', status: OffsetClaimStatus.VERIFIED, message: 'Token verified', onChainVerified: true },
+          {
+            tokenId: 'token-1',
+            status: OffsetClaimStatus.VERIFIED,
+            message: 'Token verified',
+            onChainVerified: true,
+          },
+          {
+            tokenId: 'token-2',
+            status: OffsetClaimStatus.VERIFIED,
+            message: 'Token verified',
+            onChainVerified: true,
+          },
         ],
         timestamp: new Date().toISOString(),
       });
 
-      const result = await service.verifyOffsetsForCompliance(companyId, tokenIds);
+      const result = await service.verifyOffsetsForCompliance(
+        companyId,
+        tokenIds,
+      );
 
       expect(result.valid).toBe(true);
       expect(result.totalValid).toBe(2);
       expect(result.totalTokens).toBe(2);
       expect(result.results[0].valid).toBe(true);
       expect(result.results[1].valid).toBe(true);
-      expect(retirementVerificationService.verifyRetirements).toHaveBeenCalledWith(
-        companyId,
-        {
-          tokens: tokenIds.map((id) => ({ tokenId: id })),
-          framework: ComplianceFramework.GHG,
-        },
-      );
+      expect(
+        retirementVerificationService.verifyRetirements,
+      ).toHaveBeenCalledWith(companyId, {
+        tokens: tokenIds.map((id) => ({ tokenId: id })),
+        framework: ComplianceFramework.GHG,
+      });
     });
 
     it('should return invalid result when some offsets are already claimed', async () => {
@@ -186,13 +200,26 @@ describe('GhgProtocolService', () => {
         claimedTokens: 1,
         notRetiredTokens: 0,
         results: [
-          { tokenId: 'token-1', status: OffsetClaimStatus.VERIFIED, message: 'Token verified', onChainVerified: true },
-          { tokenId: 'token-2', status: OffsetClaimStatus.ALREADY_CLAIMED, message: 'Already claimed', onChainVerified: true },
+          {
+            tokenId: 'token-1',
+            status: OffsetClaimStatus.VERIFIED,
+            message: 'Token verified',
+            onChainVerified: true,
+          },
+          {
+            tokenId: 'token-2',
+            status: OffsetClaimStatus.ALREADY_CLAIMED,
+            message: 'Already claimed',
+            onChainVerified: true,
+          },
         ],
         timestamp: new Date().toISOString(),
       });
 
-      const result = await service.verifyOffsetsForCompliance(companyId, tokenIds);
+      const result = await service.verifyOffsetsForCompliance(
+        companyId,
+        tokenIds,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.totalValid).toBe(1);
@@ -211,12 +238,20 @@ describe('GhgProtocolService', () => {
         claimedTokens: 0,
         notRetiredTokens: 1,
         results: [
-          { tokenId: 'token-1', status: OffsetClaimStatus.NOT_RETIRED, message: 'Not retired', onChainVerified: false },
+          {
+            tokenId: 'token-1',
+            status: OffsetClaimStatus.NOT_RETIRED,
+            message: 'Not retired',
+            onChainVerified: false,
+          },
         ],
         timestamp: new Date().toISOString(),
       });
 
-      const result = await service.verifyOffsetsForCompliance(companyId, tokenIds);
+      const result = await service.verifyOffsetsForCompliance(
+        companyId,
+        tokenIds,
+      );
 
       expect(result.valid).toBe(false);
       expect(result.totalValid).toBe(0);

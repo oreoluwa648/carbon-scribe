@@ -155,30 +155,43 @@ describe('ComplianceController', () => {
         claimedTokens: 0,
         notRetiredTokens: 0,
         results: [
-          { tokenId: 'token-1', status: OffsetClaimStatus.VERIFIED, message: 'Verified', onChainVerified: true },
-          { tokenId: 'token-2', status: OffsetClaimStatus.VERIFIED, message: 'Verified', onChainVerified: true },
+          {
+            tokenId: 'token-1',
+            status: OffsetClaimStatus.VERIFIED,
+            message: 'Verified',
+            onChainVerified: true,
+          },
+          {
+            tokenId: 'token-2',
+            status: OffsetClaimStatus.VERIFIED,
+            message: 'Verified',
+            onChainVerified: true,
+          },
         ],
         timestamp: new Date().toISOString(),
       };
 
-      mockComplianceService.verifyRetirementsForCompliance.mockResolvedValue(mockResult);
+      mockComplianceService.verifyRetirementsForCompliance.mockResolvedValue(
+        mockResult,
+      );
 
       const result = await controller.verifyRetirement(mockUser, dto);
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockResult);
-      expect(mockComplianceService.verifyRetirementsForCompliance).toHaveBeenCalledWith(
-        mockUser.companyId,
-        dto,
-      );
+      expect(
+        mockComplianceService.verifyRetirementsForCompliance,
+      ).toHaveBeenCalledWith(mockUser.companyId, dto);
       expect(mockSecurityService.logEvent).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when tokens array is empty', async () => {
       const dto: VerifyRetirementDto = { tokens: [] };
 
-      await expect(controller.verifyRetirement(mockUser, dto)).rejects.toThrow();
+      await expect(
+        controller.verifyRetirement(mockUser, dto),
+      ).rejects.toThrow();
     });
   });
 
@@ -211,7 +224,9 @@ describe('ComplianceController', () => {
     });
 
     it('should throw BadRequestException when tokenId is missing', async () => {
-      await expect(controller.getRetirementStatus(mockUser, '')).rejects.toThrow();
+      await expect(
+        controller.getRetirementStatus(mockUser, ''),
+      ).rejects.toThrow();
     });
   });
 
@@ -255,7 +270,9 @@ describe('ComplianceController', () => {
         ],
       };
 
-      mockComplianceService.validateTokensForCompliance.mockResolvedValue(mockResult);
+      mockComplianceService.validateTokensForCompliance.mockResolvedValue(
+        mockResult,
+      );
 
       const result = await controller.validateTokens(mockUser, {
         tokenIds: ['token-1'],
@@ -283,11 +300,19 @@ describe('ComplianceController', () => {
       const mockResult = {
         total: 5,
         items: [
-          { id: 'call-1', tokenId: 'token-1', status: 'CONFIRMED', onChainVerified: true, verifiedAt: '2026-01-01T00:00:00.000Z' },
+          {
+            id: 'call-1',
+            tokenId: 'token-1',
+            status: 'CONFIRMED',
+            onChainVerified: true,
+            verifiedAt: '2026-01-01T00:00:00.000Z',
+          },
         ],
       };
 
-      mockComplianceService.getVerificationHistory.mockResolvedValue(mockResult);
+      mockComplianceService.getVerificationHistory.mockResolvedValue(
+        mockResult,
+      );
 
       const result = await controller.getVerificationHistory(
         mockUser,
@@ -302,14 +327,21 @@ describe('ComplianceController', () => {
       expect(result.data).toEqual(mockResult);
       expect(mockComplianceService.getVerificationHistory).toHaveBeenCalledWith(
         mockUser.companyId,
-        { tokenId: undefined, framework: undefined, limit: undefined, offset: undefined },
+        {
+          tokenId: undefined,
+          framework: undefined,
+          limit: undefined,
+          offset: undefined,
+        },
       );
     });
 
     it('should pass query parameters to the service', async () => {
       const mockResult = { total: 0, items: [] };
 
-      mockComplianceService.getVerificationHistory.mockResolvedValue(mockResult);
+      mockComplianceService.getVerificationHistory.mockResolvedValue(
+        mockResult,
+      );
 
       await controller.getVerificationHistory(
         mockUser,
@@ -321,7 +353,12 @@ describe('ComplianceController', () => {
 
       expect(mockComplianceService.getVerificationHistory).toHaveBeenCalledWith(
         mockUser.companyId,
-        { tokenId: 'token-1', framework: ComplianceFramework.CORSIA, limit: 10, offset: 5 },
+        {
+          tokenId: 'token-1',
+          framework: ComplianceFramework.CORSIA,
+          limit: 10,
+          offset: 5,
+        },
       );
     });
   });

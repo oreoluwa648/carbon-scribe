@@ -6,7 +6,6 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../shared/database/prisma.service';
 import { SecurityService } from '../security/security.service';
-import { ComplianceModule } from '../compliance/compliance.module';
 import { RetirementVerificationService } from '../compliance/services/retirement-verification.service';
 import { RecordFlightDto } from './dto/record-flight.dto';
 import { FlightEmissionsService } from './services/flight-emissions.service';
@@ -14,7 +13,10 @@ import { OffsetRequirementService } from './services/offset-requirement.service'
 import { EmissionsReportService } from './services/emissions-report.service';
 import { EligibleFuelsService } from './services/eligible-fuels.service';
 import { VerifierService } from './services/verifier.service';
-import { ComplianceFramework, OffsetClaimStatus } from '../compliance/dto/retirement-verification.dto';
+import {
+  ComplianceFramework,
+  OffsetClaimStatus,
+} from '../compliance/dto/retirement-verification.dto';
 
 @Injectable()
 export class CorsiaService {
@@ -237,16 +239,14 @@ export class CorsiaService {
       },
     });
 
-    const verificationResults = await this.retirementVerificationService.verifyRetirements(
-      companyId,
-      {
+    const verificationResults =
+      await this.retirementVerificationService.verifyRetirements(companyId, {
         tokens: retirements.map((r) => ({
           tokenId: r.creditId,
           retirementTxHash: r.id,
         })),
         framework: ComplianceFramework.CORSIA,
-      },
-    );
+      });
 
     const invalidTokens = verificationResults.results
       .filter((r) => r.status !== OffsetClaimStatus.VERIFIED)

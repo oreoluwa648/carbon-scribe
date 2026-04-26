@@ -100,7 +100,10 @@ export class RetirementVerificationService {
     const claims = await this.getClaimHistory(tokenId, framework);
     const auditTrail = await this.getAuditTrail(tokenId);
 
-    const totalAmount = credit.retirements.reduce((sum, r) => sum + r.amount, 0);
+    const totalAmount = credit.retirements.reduce(
+      (sum, r) => sum + r.amount,
+      0,
+    );
     const claimedAmount = await this.calculateClaimedAmount(tokenId, framework);
 
     return {
@@ -122,8 +125,16 @@ export class RetirementVerificationService {
     tokenId: string,
     framework: ComplianceFramework,
     requiredAmount?: number,
-  ): Promise<{ valid: boolean; message: string; details?: Record<string, unknown> }> {
-    const status = await this.getRetirementStatus(companyId, tokenId, framework);
+  ): Promise<{
+    valid: boolean;
+    message: string;
+    details?: Record<string, unknown>;
+  }> {
+    const status = await this.getRetirementStatus(
+      companyId,
+      tokenId,
+      framework,
+    );
 
     if (!status.isRetired) {
       return {
@@ -175,7 +186,11 @@ export class RetirementVerificationService {
   ): Promise<{ blocked: boolean; blockedTokens: string[] }> {
     const alreadyClaimed = await Promise.all(
       tokenIds.map(async (tokenId) => {
-        const status = await this.getRetirementStatus(companyId, tokenId, framework);
+        const status = await this.getRetirementStatus(
+          companyId,
+          tokenId,
+          framework,
+        );
         const isClaimed = status.claims.some(
           (claim) => claim.framework === framework,
         );
@@ -209,7 +224,11 @@ export class RetirementVerificationService {
     });
 
     if (!credit) {
-      return this.buildFailedResult(token.tokenId, OffsetClaimStatus.INVALID, 'Token not found');
+      return this.buildFailedResult(
+        token.tokenId,
+        OffsetClaimStatus.INVALID,
+        'Token not found',
+      );
     }
 
     const retirement = credit.retirements[0];
@@ -282,10 +301,14 @@ export class RetirementVerificationService {
   private async queryOnChainRetirement(
     companyId: string,
     tokenId: string,
-  ): Promise<{ confirmed: boolean; status?: 'CONFIRMED' | 'PENDING' | 'NOT_FOUND' }> {
+  ): Promise<{
+    confirmed: boolean;
+    status?: 'CONFIRMED' | 'PENDING' | 'NOT_FOUND';
+  }> {
     try {
       const contractId =
-        process.env.RETIREMENT_TRACKER_CONTRACT_ID || RETIREMENT_TRACKER_CONTRACT_ID;
+        process.env.RETIREMENT_TRACKER_CONTRACT_ID ||
+        RETIREMENT_TRACKER_CONTRACT_ID;
 
       const simulation = await this.sorobanService.simulateContractCall({
         contractId,
@@ -315,7 +338,7 @@ export class RetirementVerificationService {
   private async findRetirementForToken(
     companyId: string,
     tokenId: string,
-  ): Promise<(Prisma.RetirementGetPayload<false>) | null> {
+  ): Promise<Prisma.RetirementGetPayload<false> | null> {
     return this.prisma.retirement.findFirst({
       where: {
         companyId,
@@ -352,11 +375,13 @@ export class RetirementVerificationService {
   private async getClaimHistory(
     tokenId: string,
     framework?: ComplianceFramework,
-  ): Promise<Array<{
-    framework: ComplianceFramework;
-    claimedAt: string;
-    claimedBy: string;
-  }>> {
+  ): Promise<
+    Array<{
+      framework: ComplianceFramework;
+      claimedAt: string;
+      claimedBy: string;
+    }>
+  > {
     const eligibleCredits = await this.prisma.corsiaEligibleCredit.findMany({
       where: framework ? { program: framework } : {},
       include: {
@@ -375,13 +400,13 @@ export class RetirementVerificationService {
       }));
   }
 
-  private async getAuditTrail(
-    tokenId: string,
-  ): Promise<Array<{
-    action: string;
-    timestamp: string;
-    details: Record<string, unknown>;
-  }>> {
+  private async getAuditTrail(_tokenId: string): Promise<
+    Array<{
+      action: string;
+      timestamp: string;
+      details: Record<string, unknown>;
+    }>
+  > {
     const events = await this.prisma.contractCall.findMany({
       where: {
         methodName: { in: ['verify_retirement', 'check_retirement_status'] },
@@ -410,7 +435,10 @@ export class RetirementVerificationService {
         data: {
           retirementId: 'batch',
           tokenIds: results.map((r) => {
-            const numId = parseInt(r.tokenId.replace(/\D/g, '').slice(0, 10), 10);
+            const numId = parseInt(
+              r.tokenId.replace(/\D/g, '').slice(0, 10),
+              10,
+            );
             return isNaN(numId) ? 0 : numId;
           }),
           amount: results.filter((r) => r.status === OffsetClaimStatus.VERIFIED)
@@ -481,7 +509,12 @@ export class RetirementVerificationService {
 
   async getVerificationHistory(
     companyId: string,
-    options?: { tokenId?: string; framework?: ComplianceFramework; limit?: number; offset?: number },
+    options?: {
+      tokenId?: string;
+      framework?: ComplianceFramework;
+      limit?: number;
+      offset?: number;
+    },
   ): Promise<{
     total: number;
     items: Array<{
@@ -494,7 +527,9 @@ export class RetirementVerificationService {
     }>;
   }> {
     const where: Prisma.ContractCallWhereInput = {
-      contractId: process.env.RETIREMENT_TRACKER_CONTRACT_ID || RETIREMENT_TRACKER_CONTRACT_ID,
+      contractId:
+        process.env.RETIREMENT_TRACKER_CONTRACT_ID ||
+        RETIREMENT_TRACKER_CONTRACT_ID,
       methodName: { in: ['check_retirement_status', 'verify_retirement'] },
     };
 
@@ -522,7 +557,8 @@ export class RetirementVerificationService {
       status: call.status,
       onChainVerified: call.status === 'CONFIRMED',
       framework: options?.framework,
-      verifiedAt: call.confirmedAt?.toISOString() || call.submittedAt.toISOString(),
+      verifiedAt:
+        call.confirmedAt?.toISOString() || call.submittedAt.toISOString(),
     }));
 
     return { total, items };
@@ -530,12 +566,21 @@ export class RetirementVerificationService {
 
   private extractTokenId(args: Prisma.InputJsonValue): string {
     if (typeof args === 'object' && args !== null) {
-      const arr = Array.isArray(args) ? args : (args as Record<string, unknown>);
+      const arr = Array.isArray(args)
+        ? args
+        : (args as Record<string, unknown>);
       if (Array.isArray(arr)) {
         const tokenArg = arr.find(
-          (a) => typeof a === 'object' && a !== null && 'type' in (a as Record<string, unknown>) && (a as Record<string, unknown>).type === 'u64',
+          (a) =>
+            typeof a === 'object' &&
+            a !== null &&
+            'type' in (a as Record<string, unknown>) &&
+            (a as Record<string, unknown>).type === 'u64',
         );
-        if (tokenArg && typeof (tokenArg as Record<string, unknown>).value !== 'undefined') {
+        if (
+          tokenArg &&
+          typeof (tokenArg as Record<string, unknown>).value !== 'undefined'
+        ) {
           return String((tokenArg as Record<string, unknown>).value);
         }
       }

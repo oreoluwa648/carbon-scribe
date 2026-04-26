@@ -54,7 +54,10 @@ describe('ComplianceService', () => {
         ComplianceService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: SecurityService, useValue: mockSecurityService },
-        { provide: RetirementVerificationService, useValue: mockRetirementVerificationService },
+        {
+          provide: RetirementVerificationService,
+          useValue: mockRetirementVerificationService,
+        },
       ],
     }).compile();
 
@@ -406,16 +409,20 @@ describe('ComplianceService', () => {
           timestamp: new Date().toISOString(),
         };
 
-        mockRetirementVerificationService.verifyRetirements.mockResolvedValue(mockResponse);
+        mockRetirementVerificationService.verifyRetirements.mockResolvedValue(
+          mockResponse,
+        );
 
-        const result = await service.verifyRetirementsForCompliance(companyId, dto);
-
-        expect(result).toBeDefined();
-        expect(result.verified).toBe(true);
-        expect(mockRetirementVerificationService.verifyRetirements).toHaveBeenCalledWith(
+        const result = await service.verifyRetirementsForCompliance(
           companyId,
           dto,
         );
+
+        expect(result).toBeDefined();
+        expect(result.verified).toBe(true);
+        expect(
+          mockRetirementVerificationService.verifyRetirements,
+        ).toHaveBeenCalledWith(companyId, dto);
       });
     });
 
@@ -448,24 +455,23 @@ describe('ComplianceService', () => {
         const framework = ComplianceFramework.CORSIA;
         const requiredAmounts = { 'token-1': 50 };
 
-        mockRetirementVerificationService.verifyTokenForCompliance.mockResolvedValue({
-          valid: true,
-          message: 'Valid',
-        });
+        mockRetirementVerificationService.verifyTokenForCompliance.mockResolvedValue(
+          {
+            valid: true,
+            message: 'Valid',
+          },
+        );
 
-        const result = await service.validateTokensForCompliance(
+        await service.validateTokensForCompliance(
           companyId,
           tokenIds,
           framework,
           requiredAmounts,
         );
 
-        expect(mockRetirementVerificationService.verifyTokenForCompliance).toHaveBeenCalledWith(
-          companyId,
-          'token-1',
-          framework,
-          50,
-        );
+        expect(
+          mockRetirementVerificationService.verifyTokenForCompliance,
+        ).toHaveBeenCalledWith(companyId, 'token-1', framework, 50);
       });
     });
 
@@ -499,7 +505,11 @@ describe('ComplianceService', () => {
             auditTrail: [],
           });
 
-        const result = await service.checkDoubleClaimRisk(companyId, tokenIds, framework);
+        const result = await service.checkDoubleClaimRisk(
+          companyId,
+          tokenIds,
+          framework,
+        );
 
         expect(result.riskLevel).toBe('LOW');
         expect(result.atRiskTokens).toHaveLength(0);
@@ -513,18 +523,43 @@ describe('ComplianceService', () => {
         mockRetirementVerificationService.getRetirementStatus
           .mockResolvedValueOnce({
             tokenId: 'token-1',
-            claims: [{ framework: ComplianceFramework.CORSIA, companyId: 'other', claimedAt: '', amount: 100 }],
+            claims: [
+              {
+                framework: ComplianceFramework.CORSIA,
+                companyId: 'other',
+                claimedAt: '',
+                amount: 100,
+              },
+            ],
           })
           .mockResolvedValueOnce({
             tokenId: 'token-2',
-            claims: [{ framework: ComplianceFramework.CORSIA, companyId: 'other', claimedAt: '', amount: 200 }],
+            claims: [
+              {
+                framework: ComplianceFramework.CORSIA,
+                companyId: 'other',
+                claimedAt: '',
+                amount: 200,
+              },
+            ],
           })
           .mockResolvedValueOnce({
             tokenId: 'token-3',
-            claims: [{ framework: ComplianceFramework.CORSIA, companyId: 'other', claimedAt: '', amount: 300 }],
+            claims: [
+              {
+                framework: ComplianceFramework.CORSIA,
+                companyId: 'other',
+                claimedAt: '',
+                amount: 300,
+              },
+            ],
           });
 
-        const result = await service.checkDoubleClaimRisk(companyId, tokenIds, framework);
+        const result = await service.checkDoubleClaimRisk(
+          companyId,
+          tokenIds,
+          framework,
+        );
 
         expect(result.riskLevel).toBe('HIGH');
         expect(result.atRiskTokens).toHaveLength(3);

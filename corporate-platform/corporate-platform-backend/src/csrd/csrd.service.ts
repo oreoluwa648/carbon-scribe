@@ -10,7 +10,10 @@ import {
 } from './dto/disclosure-query.dto';
 import { SecurityService } from '../security/security.service';
 import { RetirementVerificationService } from '../compliance/services/retirement-verification.service';
-import { ComplianceFramework, OffsetClaimStatus } from '../compliance/dto/retirement-verification.dto';
+import {
+  ComplianceFramework,
+  OffsetClaimStatus,
+} from '../compliance/dto/retirement-verification.dto';
 
 @Injectable()
 export class CsrdService {
@@ -98,10 +101,11 @@ export class CsrdService {
     totalValid: number;
     totalTokens: number;
   }> {
-    const verification = await this.retirementVerificationService.verifyRetirements(companyId, {
-      tokens: tokenIds.map((id) => ({ tokenId: id })),
-      framework: ComplianceFramework.CSRD,
-    });
+    const verification =
+      await this.retirementVerificationService.verifyRetirements(companyId, {
+        tokens: tokenIds.map((id) => ({ tokenId: id })),
+        framework: ComplianceFramework.CSRD,
+      });
 
     const results = verification.results.map((r) => ({
       tokenId: r.tokenId,

@@ -30,7 +30,10 @@ import { Scope2Service } from './services/scope2.service';
 import { Scope3Service } from './services/scope3.service';
 import { FrameworkValidationSummary } from './interfaces/inventory.interface';
 import { RetirementVerificationService } from '../compliance/services/retirement-verification.service';
-import { ComplianceFramework, OffsetClaimStatus } from '../compliance/dto/retirement-verification.dto';
+import {
+  ComplianceFramework,
+  OffsetClaimStatus,
+} from '../compliance/dto/retirement-verification.dto';
 
 @Injectable()
 export class GhgProtocolService {
@@ -231,10 +234,11 @@ export class GhgProtocolService {
     totalValid: number;
     totalTokens: number;
   }> {
-    const verification = await this.retirementVerificationService.verifyRetirements(companyId, {
-      tokens: tokenIds.map((id) => ({ tokenId: id })),
-      framework: ComplianceFramework.GHG,
-    });
+    const verification =
+      await this.retirementVerificationService.verifyRetirements(companyId, {
+        tokens: tokenIds.map((id) => ({ tokenId: id })),
+        framework: ComplianceFramework.GHG,
+      });
 
     const results = verification.results.map((r) => ({
       tokenId: r.tokenId,

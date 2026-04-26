@@ -9,7 +9,10 @@ import { EmissionsReportService } from './services/emissions-report.service';
 import { EligibleFuelsService } from './services/eligible-fuels.service';
 import { VerifierService } from './services/verifier.service';
 import { RetirementVerificationService } from '../compliance/services/retirement-verification.service';
-import { ComplianceFramework, OffsetClaimStatus } from '../compliance/dto/retirement-verification.dto';
+import {
+  ComplianceFramework,
+  OffsetClaimStatus,
+} from '../compliance/dto/retirement-verification.dto';
 
 describe('CorsiaService', () => {
   let service: CorsiaService;
@@ -56,7 +59,10 @@ describe('CorsiaService', () => {
         VerifierService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: SecurityService, useValue: securityMock },
-        { provide: RetirementVerificationService, useValue: retirementVerificationMock },
+        {
+          provide: RetirementVerificationService,
+          useValue: retirementVerificationMock,
+        },
       ],
     }).compile();
 
@@ -95,7 +101,11 @@ describe('CorsiaService', () => {
           companyId,
           amount: 100,
           creditId: 'credit-1',
-          credit: { verificationStandard: 'VERRA', methodology: 'forestry', vintage: 2022 },
+          credit: {
+            verificationStandard: 'VERRA',
+            methodology: 'forestry',
+            vintage: 2022,
+          },
         },
       ]);
 
@@ -116,9 +126,9 @@ describe('CorsiaService', () => {
         timestamp: new Date().toISOString(),
       });
 
-      await expect(service.validateCredits(companyId, retirementIds)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.validateCredits(companyId, retirementIds),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should validate and save CORSIA eligible credits when tokens are verified', async () => {
@@ -131,7 +141,11 @@ describe('CorsiaService', () => {
           companyId,
           amount: 100,
           creditId: 'credit-1',
-          credit: { verificationStandard: 'VERRA', methodology: 'forestry', vintage: 2022 },
+          credit: {
+            verificationStandard: 'VERRA',
+            methodology: 'forestry',
+            vintage: 2022,
+          },
         },
       ]);
 

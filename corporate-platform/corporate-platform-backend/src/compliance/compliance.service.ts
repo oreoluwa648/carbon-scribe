@@ -24,7 +24,10 @@ import {
   ComplianceStatus,
   ComplianceStatusDto,
 } from './dto/compliance-status.dto';
-import { IComplianceValidator, ValidationResult } from './interfaces/compliance-validator.interface';
+import {
+  IComplianceValidator,
+  ValidationResult,
+} from './interfaces/compliance-validator.interface';
 import { RetirementVerificationService } from './services/retirement-verification.service';
 import {
   VerifyRetirementDto,
@@ -190,12 +193,13 @@ export class ComplianceService implements IComplianceValidator {
   }> {
     const results = await Promise.all(
       tokenIds.map(async (tokenId) => {
-        const verification = await this.retirementVerificationService.verifyTokenForCompliance(
-          companyId,
-          tokenId,
-          framework,
-          requiredAmounts?.[tokenId],
-        );
+        const verification =
+          await this.retirementVerificationService.verifyTokenForCompliance(
+            companyId,
+            tokenId,
+            framework,
+            requiredAmounts?.[tokenId],
+          );
         return {
           tokenId,
           valid: verification.valid,
@@ -234,11 +238,12 @@ export class ComplianceService implements IComplianceValidator {
   }> {
     const results = await Promise.all(
       tokenIds.map(async (tokenId) => {
-        const status = await this.retirementVerificationService.getRetirementStatus(
-          companyId,
-          tokenId,
-          framework,
-        );
+        const status =
+          await this.retirementVerificationService.getRetirementStatus(
+            companyId,
+            tokenId,
+            framework,
+          );
         return status.claims.length > 0 ? tokenId : null;
       }),
     );
@@ -269,9 +274,17 @@ export class ComplianceService implements IComplianceValidator {
 
   async getVerificationHistory(
     companyId: string,
-    options?: { tokenId?: string; framework?: ComplianceFramework; limit?: number; offset?: number },
+    options?: {
+      tokenId?: string;
+      framework?: ComplianceFramework;
+      limit?: number;
+      offset?: number;
+    },
   ) {
-    return this.retirementVerificationService.getVerificationHistory(companyId, options);
+    return this.retirementVerificationService.getVerificationHistory(
+      companyId,
+      options,
+    );
   }
 
   /**

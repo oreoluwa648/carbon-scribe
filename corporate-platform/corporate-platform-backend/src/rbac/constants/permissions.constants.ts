@@ -40,6 +40,10 @@ export const SETTINGS_BILLING = 'settings:billing';
 export const ADMIN_USER_MANAGE = 'admin:user-manage';
 export const ADMIN_VIEW_AUDIT_LOGS = 'admin:view-audit-logs';
 
+/** Audit Hash: anchor and verify retirement audit hashes */
+export const AUDIT_HASH_ANCHOR = 'audit-hash:anchor';
+export const AUDIT_HASH_VERIFY = 'audit-hash:verify';
+
 /** All permissions (flat list) */
 export const ALL_PERMISSIONS = [
   PORTFOLIO_VIEW,
@@ -65,6 +69,8 @@ export const ALL_PERMISSIONS = [
   SETTINGS_BILLING,
   ADMIN_USER_MANAGE,
   ADMIN_VIEW_AUDIT_LOGS,
+  AUDIT_HASH_ANCHOR,
+  AUDIT_HASH_VERIFY,
 ] as const;
 
 export type Permission = (typeof ALL_PERMISSIONS)[number];
@@ -93,6 +99,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     REPORT_EXPORT,
     COMPLIANCE_VIEW,
     TEAM_VIEW,
+    AUDIT_HASH_VERIFY,
   ],
   manager: [
     PORTFOLIO_VIEW,
@@ -106,6 +113,8 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     COMPLIANCE_VIEW,
     COMPLIANCE_SUBMIT,
     TEAM_VIEW,
+    AUDIT_HASH_ANCHOR,
+    AUDIT_HASH_VERIFY,
   ],
   viewer: [
     PORTFOLIO_VIEW,
@@ -122,5 +131,7 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
     COMPLIANCE_VIEW,
     COMPLIANCE_AUDIT,
     ADMIN_VIEW_AUDIT_LOGS,
+    AUDIT_HASH_ANCHOR,
+    AUDIT_HASH_VERIFY,
   ],
 };

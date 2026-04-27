@@ -5,7 +5,8 @@ import { Response } from 'express';
 import { RetirementTrackerService } from '../../stellar/soroban/contracts/retirement-tracker.service';
 
 const STELLAR_EXPLORER_BASE =
-  process.env.STELLAR_EXPLORER_URL || 'https://stellar.expert/explorer/public/tx';
+  process.env.STELLAR_EXPLORER_URL ||
+  'https://stellar.expert/explorer/public/tx';
 
 @Injectable()
 export class CertificateService {
@@ -146,23 +147,24 @@ export class CertificateService {
       const explorerUrl = `${STELLAR_EXPLORER_BASE}/${data.transactionHash}`;
       doc
         .fillColor('#1a5c38')
-        .text(`Stellar Explorer:  ${explorerUrl}`, { link: explorerUrl, underline: true })
+        .text(`Stellar Explorer:  ${explorerUrl}`, {
+          link: explorerUrl,
+          underline: true,
+        })
         .fillColor('#444444')
         .moveDown(0.2);
     }
 
     const contractId = this.retirementTrackerService.getContractId();
-    doc
-      .text(`Smart Contract:    ${contractId}`)
-      .moveDown(0.2);
+    doc.text(`Smart Contract:    ${contractId}`).moveDown(0.2);
 
     if (onChainProof) {
       const tokenId = onChainProof['token_id'] ?? onChainProof['tokenId'];
       const retiringEntity =
         onChainProof['retiring_entity'] ?? onChainProof['retiringEntity'];
-      const onChainTs =
-        onChainProof['timestamp'] ?? onChainProof['retired_at'];
-      const reason = onChainProof['reason'] ?? onChainProof['retirement_reason'];
+      const onChainTs = onChainProof['timestamp'] ?? onChainProof['retired_at'];
+      const reason =
+        onChainProof['reason'] ?? onChainProof['retirement_reason'];
 
       if (tokenId) doc.text(`Token ID:          ${tokenId}`).moveDown(0.2);
       if (retiringEntity)
@@ -192,7 +194,6 @@ export class CertificateService {
     // ── QR Code placeholder (text-based link) ────────────────────────────────
     if (data.transactionHash) {
       doc.moveDown(0.4);
-      const verifyUrl = `${STELLAR_EXPLORER_BASE}/${data.transactionHash}`;
       doc
         .fillColor('#888888')
         .fontSize(8)
